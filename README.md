@@ -2,4 +2,5 @@
 
 案例说明
 
-* example1：创建一个http服务器
+* Example1：vertx执行阻塞逻辑、事件回调逻辑、定时任务注册与取消，以及verticle和事件总线。
+* Example2：
