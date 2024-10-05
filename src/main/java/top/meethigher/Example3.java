@@ -17,9 +17,10 @@ public class Example3 {
 
     public static void main(String[] args) throws Exception {
 
-        Vertx vertx = Vertx.vertx(new VertxOptions().setEventLoopPoolSize(1).setWorkerPoolSize(2000));
+        Vertx vertx = Vertx.vertx(new VertxOptions().setEventLoopPoolSize(1).setWorkerPoolSize(1));
         // 创建HttpClient时指定的PoolOptions里面的EventLoopSize不会生效。以Vertx的EventLoopSize为主。默认http/1为5并发，http/2为1并发
         HttpClient httpClient = vertx.createHttpClient(new PoolOptions().setHttp2MaxSize(2000).setHttp1MaxSize(2000).setEventLoopSize(2000));
+        HttpClient httpsClient = vertx.createHttpClient(new HttpClientOptions().setSsl(true).setTrustAll(true).setConnectTimeout(60000), new PoolOptions().setHttp2MaxSize(2000).setHttp1MaxSize(2000).setEventLoopSize(2000));
 
         /**
          * 输出当前活着的线程
@@ -65,10 +66,12 @@ public class Example3 {
                 @Override
                 public void start() throws Exception {
                     httpClient.request(HttpMethod.GET, 4321, "localhost", "/test/test?test=" + finalI)
+                    //httpsClient.request(HttpMethod.GET, 443, "reqres.in", "/api/users?page=" + finalI)
                             .onComplete(r -> {
                                 if (r.succeeded()) {
                                     HttpClientRequest request = r.result();
                                     log.info("{} send request {}", this, request.absoluteURI());
+                                    request.putHeader("User-Agent", "I am Vertx");
                                     request.send()
                                             .onComplete(r1 -> {
                                                 if (r1.succeeded()) {
@@ -86,10 +89,12 @@ public class Example3 {
                                                 } else {
                                                     log.error("{} send failed: {}", this, r1.cause().getMessage(), r1.cause());
                                                 }
+
                                                 countDownLatch.countDown();
                                             });
                                 } else {
                                     log.error("request failed: {}", r.cause().getMessage(), r.cause());
+                                    countDownLatch.countDown();
                                 }
                             });
                 }
