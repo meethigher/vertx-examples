@@ -8,4 +8,5 @@
 * Example4.java：http server
 * Example5.java：vertx中提供的文件系统。
 * Example6.java：vertx实现http反向代理，使用默认处理逻辑与自定义处理逻辑。
-* Example7.java：vertx实现tcp反向代理。
+* Example7.java：vertx实现tcp服务，使用handler函数式接口，并记录使用中碰到的错误点。
+* Example8.java：vertx实现tcp反向代理。该代码来自于vertx-sql-client。
