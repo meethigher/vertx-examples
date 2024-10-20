@@ -10,3 +10,4 @@
 * Example6.java：vertx实现http反向代理，使用默认处理逻辑与自定义处理逻辑。
 * Example7.java：vertx实现tcp服务，使用handler函数式接口，并记录使用中碰到的错误点。
 * Example8.java：vertx实现tcp反向代理。该代码来自于vertx-sql-client。
+* Example9.java：vertx实现http、tcp数据传输，并以tomcat为例解决实现上传时的一些[疑问](https://juejin.cn/post/7055851941837930533)。

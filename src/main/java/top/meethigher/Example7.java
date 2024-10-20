@@ -80,8 +80,10 @@ public class Example7 {
         Handler<NetSocket> handler = sourceSocket -> {
             sourceSocket.pause();
             netClient.connect(5432, "10.0.0.9").onSuccess(targetSocket -> {
-                targetSocket.handler(sourceSocket::write);
-                sourceSocket.handler(targetSocket::write);
+                targetSocket.pipeTo(sourceSocket);
+                sourceSocket.pipeTo(targetSocket);
+//                targetSocket.handler(sourceSocket::write);
+//                sourceSocket.handler(targetSocket::write);
                 sourceSocket.resume();
             });
         };
