@@ -3,6 +3,7 @@ package top.meethigher;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.FileSystem;
+import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
@@ -18,7 +19,7 @@ public class Example9 {
     private static final Vertx vertx = Vertx.vertx();
 
     public static void main(String[] args) {
-        httpDataTransport();
+        fileCopy();
     }
 
     private static void httpDataTransport() {
@@ -82,7 +83,66 @@ public class Example9 {
         }).onFailure(Throwable::printStackTrace);
     }
 
-    private static void tcpDataTransport() {
 
+    private static void fileCopy() {
+        FileSystem fs = vertx.fileSystem();
+        fs.open("D:/Desktop/2gb.txt", new OpenOptions().setRead(true).setWrite(false))
+                .onSuccess(af -> {
+                    af.pause();
+                    fs.open("D:/Desktop/fileCopy.txt",new OpenOptions().setRead(true).setWrite(true))
+                            .onSuccess(tf->{
+                                af.handler(b->{
+                                    tf.write(b);
+                                });
+                                af.endHandler(t->{
+                                    System.out.println("完啦");
+                                });
+                                af.resume();
+                            });
+                });
     }
+
+//    private static void tcpDataTransport() {
+//        FileSystem fs = vertx.fileSystem();
+//        NetServer netServer = vertx.createNetServer();
+//        Handler<NetSocket> connectHandler = netSocket -> {
+//            netSocket.pause();
+//            netSocket.handler(buffer -> {
+//                fs.writeFile("D:/Desktop/tcpfile", buffer).onSuccess(t -> {
+//                    System.out.println("server写入文件...");
+//                }).onFailure(Throwable::printStackTrace);
+//            });
+//            vertx.setTimer(5000, id -> {
+//                netSocket.resume();
+//            });
+//            netSocket.closeHandler(t -> {
+//                System.out.println("连接关闭");
+//            });
+//        };
+//
+//        netServer.connectHandler(connectHandler).listen(22);
+//
+//
+//        // 模拟通过tcp传入2gb数据
+//        NetClient netClient = vertx.createNetClient();
+//        netClient.connect(22, "127.0.0.1").onSuccess(socket -> {
+//            fs.open("D:/Desktop/2gb.txt", new OpenOptions().setRead(true).setWrite(false))
+//                    .onSuccess(af -> {
+//                        af.handler(buffer -> {
+//                            socket.write(buffer);
+//                            System.out.println("client写入文件...");
+//                            // Check if write queue is full
+//                            if (socket.writeQueueFull()) {
+//                                // Pause reading data
+////                                af.pause();
+//                                // Called once write queue is ready to accept more data
+//                                af.drainHandler(done -> {
+//                                    // Resume reading data
+////                                    af.resume();
+//                                });
+//                            }
+//                        });
+//                    });
+//        });
+//    }
 }

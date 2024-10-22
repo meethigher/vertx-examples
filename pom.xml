@@ -62,6 +62,12 @@
             <version>1.18.22</version>
         </dependency>
 
+        <dependency>
+            <groupId>top.meethigher</groupId>
+            <artifactId>memory-monitor</artifactId>
+            <version>1.0</version>
+        </dependency>
+
     </dependencies>
 
 </project>
