@@ -3,26 +3,36 @@ package top.meethigher;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
+@Slf4j
 public class Example9 {
 
 
     private static final Vertx vertx = Vertx.vertx();
 
     public static void main(String[] args) {
-        fileCopy();
+        MemoryMonitor memoryMonitor = new MemoryMonitor();
+        memoryMonitor.start();
+        log.info("start {}", memoryMonitor.convertBytes(memoryMonitor.getUsedMemory()));
+        vertx.setPeriodic(1000, v -> {
+            log.info("cur {}", memoryMonitor.convertBytes(memoryMonitor.getUsedMemory()));
+        });
+        httpServer();
     }
 
-    private static void httpDataTransport() {
+    /**
+     * 使用postman或者httpie自行进行测试
+     */
+    private static void httpServer() {
         HttpServer httpServer = vertx.createHttpServer();
         FileSystem fs = vertx.fileSystem();
         Router router = Router.router(vertx);
@@ -58,7 +68,7 @@ public class Example9 {
         router.route(HttpMethod.POST, "/test/upload")
                 .consumes("multipart/form-data")
                 // 整体流程跟tomcat类似：用户上传文件后，程序先将文件写入到某个地方，然后再执行实际的业务代码，最后删除。
-                .handler(BodyHandler.create().setBodyLimit(10 * 1024 * 1024 * 1024L).setDeleteUploadedFilesOnEnd(true)).handler(rc -> {
+                .handler(BodyHandler.create().setBodyLimit(50 * 1024 * 1024 * 1024L).setDeleteUploadedFilesOnEnd(true)).handler(rc -> {
                     MultiMap entries = rc.request().formAttributes();
                     for (Map.Entry<String, String> entry : entries) {
                         System.out.println(entry.getKey() + ": " + entry.getValue());
@@ -84,65 +94,4 @@ public class Example9 {
     }
 
 
-    private static void fileCopy() {
-        FileSystem fs = vertx.fileSystem();
-        fs.open("D:/Desktop/2gb.txt", new OpenOptions().setRead(true).setWrite(false))
-                .onSuccess(af -> {
-                    af.pause();
-                    fs.open("D:/Desktop/fileCopy.txt",new OpenOptions().setRead(true).setWrite(true))
-                            .onSuccess(tf->{
-                                af.handler(b->{
-                                    tf.write(b);
-                                });
-                                af.endHandler(t->{
-                                    System.out.println("完啦");
-                                });
-                                af.resume();
-                            });
-                });
-    }
-
-//    private static void tcpDataTransport() {
-//        FileSystem fs = vertx.fileSystem();
-//        NetServer netServer = vertx.createNetServer();
-//        Handler<NetSocket> connectHandler = netSocket -> {
-//            netSocket.pause();
-//            netSocket.handler(buffer -> {
-//                fs.writeFile("D:/Desktop/tcpfile", buffer).onSuccess(t -> {
-//                    System.out.println("server写入文件...");
-//                }).onFailure(Throwable::printStackTrace);
-//            });
-//            vertx.setTimer(5000, id -> {
-//                netSocket.resume();
-//            });
-//            netSocket.closeHandler(t -> {
-//                System.out.println("连接关闭");
-//            });
-//        };
-//
-//        netServer.connectHandler(connectHandler).listen(22);
-//
-//
-//        // 模拟通过tcp传入2gb数据
-//        NetClient netClient = vertx.createNetClient();
-//        netClient.connect(22, "127.0.0.1").onSuccess(socket -> {
-//            fs.open("D:/Desktop/2gb.txt", new OpenOptions().setRead(true).setWrite(false))
-//                    .onSuccess(af -> {
-//                        af.handler(buffer -> {
-//                            socket.write(buffer);
-//                            System.out.println("client写入文件...");
-//                            // Check if write queue is full
-//                            if (socket.writeQueueFull()) {
-//                                // Pause reading data
-////                                af.pause();
-//                                // Called once write queue is ready to accept more data
-//                                af.drainHandler(done -> {
-//                                    // Resume reading data
-////                                    af.resume();
-//                                });
-//                            }
-//                        });
-//                    });
-//        });
-//    }
 }
