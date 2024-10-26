@@ -29,9 +29,30 @@ public class Example6 {
         router.route().handler(ProxyHandler.create(httpsProxy, 443, "meethigher.top"));
 
         // 自定义逻辑，自己实现。order越小，优先级越高
+        // /api/* --> https://reqres.in/api/*
         router.route("/api/*").order(Integer.MIN_VALUE).handler(ctx -> {
             HttpServerRequest request = ctx.request();
-            httpsClient.request(HttpMethod.valueOf(request.method().name()), 443, "reqres.in", request.uri())
+            String uri = request.uri();
+            Route route = ctx.currentRoute();
+            String path;
+            /**
+             * false表示 /api/* --> https://reqres.in/api/*
+             * true表示 /api/* --> https://requres.in/*
+             */
+            boolean whole = false;
+            if (whole) {
+                if (route.getPath().endsWith("/")) {
+                    int length = route.getPath().length() - 1;
+                    path = uri.substring(length);
+                } else {
+                    int length = route.getPath().length();
+                    path = uri.substring(length);
+                }
+            } else {
+                path = request.uri();
+            }
+            System.out.println(path);
+            httpsClient.request(HttpMethod.valueOf(request.method().name()), 443, "reqres.in", path)
                     .onSuccess(r -> {
                         r.headers().setAll(request.headers());
                         r.putHeader("Host", "reqres.in");
@@ -59,7 +80,7 @@ public class Example6 {
             log.info("http server started on port {}", port);
         });
 
-        TimeUnit.SECONDS.sleep(10);
+        TimeUnit.MINUTES.sleep(10);
         // 可以在运行时，动态移除路由
         List<Route> routes = router.getRoutes();
         for (Route next : routes) {
