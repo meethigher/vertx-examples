@@ -1,6 +1,7 @@
 package top.meethigher;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
@@ -22,7 +23,35 @@ public class Example7 {
     private static final String host = "127.0.0.1";
 
     public static void main(String[] args) throws Exception {
-        tcpReverse();
+
+    }
+
+    /**
+     * 即使调用多次close，closeHandler也只执行一次。因为内部判定了closed状态
+     * 因此在编写tcp管道时，不用担心重复关闭导致套娃的问题。示例代码如下
+     * ```
+     * sourceSocket.closeHandler(v -> targetSocket.close()).pipeTo(targetSocket);
+     * targetSocket.closeHandler(v -> sourceSocket.close()).pipeTo(sourceSocket);
+     * ```
+     */
+    private static void testMultiplyClose() {
+        NetServer netServer = vertx.createNetServer();
+        netServer.connectHandler(socket -> {
+
+        }).listen(22).onSuccess(v -> {
+            System.out.println("服务启动 22");
+        });
+
+        NetClient netClient = vertx.createNetClient();
+        Future<NetSocket> connect = netClient.connect(22, "127.0.0.1");
+        connect.onSuccess(socket -> {
+            socket.closeHandler(t -> {
+                log.info("我关掉啦");
+            });
+            for (int i = 0; i < 2; i++) {
+                socket.close();
+            }
+        });
     }
 
     private static void tcpClient() throws Exception {
