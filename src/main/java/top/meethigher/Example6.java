@@ -2,14 +2,18 @@ package top.meethigher;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.proxy.handler.ProxyHandler;
 import io.vertx.httpproxy.HttpProxy;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 public class Example6 {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         int port = 8080;
         Vertx vertx = Vertx.vertx();
         HttpServer httpServer = vertx.createHttpServer();
@@ -24,8 +28,8 @@ public class Example6 {
         router.route("/halo/*").handler(ProxyHandler.create(httpProxy, 4321, "10.0.0.1"));
         router.route().handler(ProxyHandler.create(httpsProxy, 443, "meethigher.top"));
 
-        // 自定义逻辑，自己实现
-        router.route("/api/*").handler(ctx -> {
+        // 自定义逻辑，自己实现。order越小，优先级越高
+        router.route("/api/*").order(Integer.MIN_VALUE).handler(ctx -> {
             HttpServerRequest request = ctx.request();
             httpsClient.request(HttpMethod.valueOf(request.method().name()), 443, "reqres.in", request.uri())
                     .onSuccess(r -> {
@@ -54,5 +58,19 @@ public class Example6 {
         httpServer.requestHandler(router).listen(port).onSuccess(t -> {
             log.info("http server started on port {}", port);
         });
+
+        TimeUnit.SECONDS.sleep(10);
+        // 可以在运行时，动态移除路由
+        List<Route> routes = router.getRoutes();
+        for (Route next : routes) {
+            // 首先判断是否是精准匹配地址
+            String path = next.isExactPath() ? next.getPath() : next.getPath() + "*";
+            if ("/api/*".equals(path)) {
+                next.remove();
+            }
+        }
+        log.info("remove route /api/*");
+        List<Route> routes1 = router.getRoutes();
+        System.out.println();
     }
 }
