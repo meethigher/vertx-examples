@@ -18,6 +18,11 @@ public class Example3 {
     public static void main(String[] args) throws Exception {
 
         Vertx vertx = Vertx.vertx(new VertxOptions().setEventLoopPoolSize(1).setWorkerPoolSize(1));
+        /**
+         * 当你想要一个既能发送http、又能发送https，既能followRedirect也能不followRedirect
+         * 那么就需要在发送时，使用io.vertx.core.http.HttpClient#request(io.vertx.core.http.RequestOptions)
+         * 否则，建议就使用多个池
+         */
         // 创建HttpClient时指定的PoolOptions里面的EventLoopSize不会生效。以Vertx的EventLoopSize为主。默认http/1为5并发，http/2为1并发
         HttpClient httpClient = vertx.createHttpClient(new PoolOptions().setHttp2MaxSize(2000).setHttp1MaxSize(2000).setEventLoopSize(2000));
         HttpClient httpsClient = vertx.createHttpClient(new HttpClientOptions().setSsl(true).setTrustAll(true).setConnectTimeout(60000), new PoolOptions().setHttp2MaxSize(2000).setHttp1MaxSize(2000).setEventLoopSize(2000));
@@ -65,7 +70,8 @@ public class Example3 {
             vertx.deployVerticle(new AbstractVerticle() {
                 @Override
                 public void start() throws Exception {
-                    httpClient.request(HttpMethod.GET, 4321, "localhost", "/test/test?test=" + finalI)
+                    httpClient.request(new RequestOptions().setMethod(HttpMethod.GET).setSsl(true).setHost("reqres.in").setPort(443).setURI("/api/users?page="+finalI))
+//                    httpClient.request(HttpMethod.GET, 4321, "localhost", "/test/test?test=" + finalI)
                     //httpsClient.request(HttpMethod.GET, 443, "reqres.in", "/api/users?page=" + finalI)
                             .onComplete(r -> {
                                 if (r.succeeded()) {
