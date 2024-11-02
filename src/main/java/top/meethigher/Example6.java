@@ -18,7 +18,7 @@ public class Example6 {
         Vertx vertx = Vertx.vertx();
         HttpServer httpServer = vertx.createHttpServer();
         Router router = Router.router(vertx);
-        HttpClient httpClient = vertx.createHttpClient();
+        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setTrustAll(true).setVerifyHost(false).setLogActivity(true));
         HttpClient httpsClient = vertx.createHttpClient(new HttpClientOptions().setSsl(true).setTrustAll(true));
 
         HttpProxy httpProxy = HttpProxy.reverseProxy(httpClient);
@@ -52,7 +52,8 @@ public class Example6 {
                 path = request.uri();
             }
             System.out.println(path);
-            httpsClient.request(HttpMethod.valueOf(request.method().name()), 443, "reqres.in", path)
+            httpClient.request(new RequestOptions().setMethod(request.method()).setURI(path).setHost("reqres.in").setPort(443).setSsl(true))
+//            httpsClient.request(HttpMethod.valueOf(request.method().name()), 443, "reqres.in", path)
                     .onSuccess(r -> {
                         r.headers().setAll(request.headers());
                         r.putHeader("Host", "reqres.in");
