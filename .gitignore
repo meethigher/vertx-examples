@@ -1,3 +1,5 @@
+*.MF
+out/
 file-uploads/
 target/
 !.mvn/wrapper/maven-wrapper.jar
