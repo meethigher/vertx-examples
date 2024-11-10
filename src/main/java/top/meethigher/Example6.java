@@ -13,21 +13,44 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class Example6 {
-    public static void main(String[] args) throws Exception {
-        int port = 8080;
-        Vertx vertx = Vertx.vertx();
-        HttpServer httpServer = vertx.createHttpServer();
-        Router router = Router.router(vertx);
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setTrustAll(true).setVerifyHost(false).setLogActivity(true));
-        HttpClient httpsClient = vertx.createHttpClient(new HttpClientOptions().setSsl(true).setTrustAll(true));
 
-        HttpProxy httpProxy = HttpProxy.reverseProxy(httpClient);
-        HttpProxy httpsProxy = HttpProxy.reverseProxy(httpsClient);
+    public static final Vertx vertx = Vertx.vertx();
 
+    public static void defaultHandler(Router router, HttpProxy httpProxy, HttpProxy httpsProxy) {
         // 默认处理逻辑ProxyHandler，这个是由vertx-web-proxy扩展提供
         router.route("/halo/*").handler(ProxyHandler.create(httpProxy, 4321, "10.0.0.1"));
         router.route().handler(ProxyHandler.create(httpsProxy, 443, "meethigher.top"));
 
+        // 第一种自定义方式，使用注入器
+        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setSsl(false).setTrustAll(true).setVerifyHost(false));
+        HttpProxy host = HttpProxy.reverseProxy(httpClient).origin(4321, "10.0.0.1");
+        //host.addInterceptor(new ProxyInterceptor() {
+        //    @Override
+        //    public Future<ProxyResponse> handleProxyRequest(ProxyContext context) {
+        //        context.request().headers().set("host", "meethigher.top");// 这个请求头修改不了，需要深入到HttpClient内部才能进行修改。
+        //        context.request().headers().set("Axb", "Axb"); // 这个请求头就可以改
+        //        return ProxyInterceptor.super.handleProxyRequest(context);
+        //    }
+//
+        //    @Override
+        //    public Future<Void> handleProxyResponse(ProxyContext context) {
+        //        context.response().headers().set("CCC", "CCC");
+        //        return ProxyInterceptor.super.handleProxyResponse(context);
+        //    }
+        //});
+        //ProxyHandler requestHandler = ProxyHandler.create(host);
+        //router.route("/test/*").order(Integer.MIN_VALUE).handler(requestHandler);
+
+        // 第二种注入方式。在handler中自己决定何时使用HttpProxy
+        router.route("/test/*").order(Integer.MIN_VALUE).handler(context -> {
+            context.request().headers().set("host", "meethigher.top");// 这个请求头修改不了，需要深入到HttpClient内部才能进行修改。
+            context.request().headers().set("Axb", "Axb"); // 这个请求头就可以改
+            host.handle(context.request());
+            context.response().putHeader("CCC", "CCC");
+        });
+    }
+
+    public static void diyHandler(Router router, HttpClient httpClient, HttpClient httpsClient) {
         // 自定义逻辑，自己实现。order越小，优先级越高
         // /api/* --> https://reqres.in/api/*
         router.route("/api/*").order(Integer.MIN_VALUE).handler(ctx -> {
@@ -76,6 +99,21 @@ public class Example6 {
                         ctx.response().setStatusCode(500).end("Internal Server Error");
                     });
         });
+    }
+
+    public static void main(String[] args) throws Exception {
+        int port = 8080;
+        HttpServer httpServer = vertx.createHttpServer();
+        Router router = Router.router(vertx);
+        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setTrustAll(true).setVerifyHost(false).setLogActivity(true));
+        HttpClient httpsClient = vertx.createHttpClient(new HttpClientOptions().setSsl(true).setTrustAll(true));
+
+        HttpProxy httpProxy = HttpProxy.reverseProxy(httpClient);
+        HttpProxy httpsProxy = HttpProxy.reverseProxy(httpsClient);
+
+        defaultHandler(router, httpProxy, httpsProxy);
+        diyHandler(router, httpClient, httpsClient);
+
 
         httpServer.requestHandler(router).listen(port).onSuccess(t -> {
             log.info("http server started on port {}", port);
