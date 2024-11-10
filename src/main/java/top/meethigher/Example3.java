@@ -1,6 +1,7 @@
 package top.meethigher;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
@@ -15,7 +16,25 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class Example3 {
 
+    public static void testHttpClientModifyHeader() {
+        Vertx vertx = Vertx.vertx();
+        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions().setSsl(true).setTrustAll(true).setVerifyHost(false));
+        Future<HttpClientRequest> request = httpClient.request(HttpMethod.GET, 443, "reqres.in", "/api/users?page=1");
+        request.onSuccess(req -> {
+            req.headers().set("Host", "reqres.in");
+            Future<HttpClientResponse> send = req.send();
+            send.onFailure(Throwable::printStackTrace)
+                    .onSuccess(resp -> {
+                        resp.bodyHandler(System.out::println);
+                    });
+        });
+    }
+
     public static void main(String[] args) throws Exception {
+        testHttpClientModifyHeader();
+    }
+
+    public static void base() throws Exception {
 
         Vertx vertx = Vertx.vertx(new VertxOptions().setEventLoopPoolSize(1).setWorkerPoolSize(1));
         /**
