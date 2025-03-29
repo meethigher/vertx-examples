@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package top.meethigher.proto;
+
+// 定义消息格式
+message MyMessage {
+  string id = 1;
+  string content = 2;
+}
