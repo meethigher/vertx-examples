@@ -74,6 +74,10 @@ public class Example12 {
          * protoc -I=$SRC_DIR --java_out=$DST_DIR $SRC_DIR/addressbook.proto
          * 在当前应用目录下
          * protoc --java_out=${OUTPUT_DIR} path/to/your/proto/file
+         *
+         * 注意，如果你使用的是javalite，那么在生成时，命令需要更换为如下
+         * 参考 https://github.com/protocolbuffers/protobuf/blob/main/java/lite.md
+         * protoc --java_out=lite:${OUTPUT_DIR} path/to/your/proto/file
          */
 
         Event.MyMessage message = Event.MyMessage.newBuilder().setId("编号").setContent("内容").build();
