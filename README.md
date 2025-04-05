@@ -14,3 +14,4 @@
 * Example10.java：vertx实现tcp数据传输，并验证tcp双端产生和消费速率不匹配时的一些问题。
 * Example11.java：vertx使用webclient
 * Example12.java：vertx使用protobuf封装tcp通信机制，自定义协议消息结构（消息长度+消息类型+可变消息体）解决粘包/半包问题。
+* Example13.java：vertx的RecordParser以及基于自定义消息结构实现解码逻辑
