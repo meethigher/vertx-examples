@@ -46,7 +46,7 @@ public class Example8 {
      * A proxy server, useful for changing some server behavior
      *
      * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
-     * @see <a href="https://github.com/eclipse-vertx/vertx-sql-client/blob/master/vertx-sql-client/src/test/java/io/vertx/sqlclient/ProxyServer.java">ProxyServer</a>
+     * @see <a href="https://github.com/eclipse-vertx/vertx-sql-client/blob/4.5.10/vertx-sql-client/src/test/java/io/vertx/sqlclient/ProxyServer.java">ProxyServer</a>
      */
     static class ProxyServer {
 
