@@ -17,4 +17,40 @@
 * Example13.java：vertx的RecordParser以及基于自定义消息结构实现解码逻辑
 * Example14.java：vertx实现tcp client的自动重连机制
 * Example15.java：理解socket.resume简易示例
-* Example16.java：手撕frp简易功能
+* Example16.java：手撕frp简易功能，该内容在下文有mermaid时序图。
+
+
+
+
+`Example16.java` 时序图
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant user as User
+    participant tsp as FRPS-Proxy
+    participant tsc as FRPS-Control
+    participant tc as FRPC
+    participant rs as RealServer
+    
+    rs->>rs: 监听80端口
+    tsc->>tsc: 监听44444端口
+    tsp->>tsp: 监听2222端口
+    tc->>tsc: 连接44444端口
+    user->>tsp: 连接2222端口
+    tsp-->>tsc: 
+    tsc->>tc: 你需要主动连接2222端口
+    tc->>tsp: 连接2222端口
+    note left of tsp: 绑定连接，实现双连接的双向转发
+    tc->>rs: 连接80端口
+    note left of tc: 绑定连接，实现双连接的双向转发
+
+    user->>tsp: 发送请求数据
+    tsp->>tc: 转发请求数据
+    tc->>rs: 转发请求数据
+    rs->>tc: 响应请求数据
+    tc->>tsp: 转发请求数据
+    tsp->>user: 转啊请求数据
+    note left of user: 该请求示例是以用户主动发送数据为例，还有一种情况是服务主动发送数据，不过也一样。
+    
+```
