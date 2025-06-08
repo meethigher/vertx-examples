@@ -18,6 +18,8 @@
 * Example14.java：vertx实现tcp client的自动重连机制
 * Example15.java：理解socket.resume简易示例
 * Example16.java：手撕frp简易功能，该内容在下文有mermaid时序图。
+* Example17.java：http upgrade。通过一个端口既支持http服务，又支持websocket服务。
+* Example18.java：抄袭Pipe手动实现DiyPipe
 
 
 
