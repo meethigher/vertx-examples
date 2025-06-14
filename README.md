@@ -20,6 +20,7 @@
 * Example16.java：手撕frp简易功能，该内容在下文有mermaid时序图。
 * Example17.java：http upgrade。通过一个端口既支持http服务，又支持websocket服务。
 * Example18.java：抄袭Pipe手动实现DiyPipe
+* Example19.java：Promise..Future使用示例
 
 
 
